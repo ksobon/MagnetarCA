@@ -1,0 +1,116 @@
+﻿<UserControl x:Class="MagnetarCA.Controls.CompaniesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:schema="clr-namespace:MagnetarCA.Schema"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             Background="{DynamicResource MaterialDesignPaper}"
+             d:DesignHeight="450"
+             d:DesignWidth="800">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.PopupBox.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.TextBlock.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/MaterialDesignColor.Green.Named.Primary.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <CollectionViewSource x:Key="CompaniesCollection" Source="{Binding SelectedProject.Companies}"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <ItemsControl>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type schema:Company}">
+                    <AdornerDecorator Margin="10,10,0,0" VerticalAlignment="Top">
+                        <md:Card Width="200" Height="300">
+                            <Grid RenderOptions.ClearTypeHint="Enabled" Background="White">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="140" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="20" />
+                                </Grid.RowDefinitions>
+                                <Image Source="../Resources/Magnetar_1200x630.jpg"
+                                       Height="140"
+                                       Width="196"
+                                       Margin="2"
+                                       Stretch="UniformToFill" />
+                                <Button Grid.Row="0"
+                                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.EditCompany}"
+                                        CommandParameter="{Binding }"
+                                        Style="{StaticResource MaterialDesignFloatingActionMiniAccentButton}"
+                                        Width="30"
+                                        Height="30"
+                                        Margin="0,0,16,-20"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Bottom">
+                                    <Button.Content>
+                                        <md:PackIcon Kind="Pencil" />
+                                    </Button.Content>
+                                </Button>
+                                <StackPanel Grid.Row="1" Margin="8,24,8,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" FontWeight="Bold" />
+                                    </StackPanel>
+                                    <TextBlock TextWrapping="Wrap"
+                                               VerticalAlignment="Center"
+                                               Margin="0,5,0,0">
+                                        This is some Company description. We will fill this out later.
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </md:Card>
+                    </AdornerDecorator>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            <ItemsControl.ItemsSource>
+                <CompositeCollection>
+                    <CollectionContainer Collection="{Binding Source={StaticResource CompaniesCollection}}"/>
+                    <AdornerDecorator Margin="10,10,0,0" VerticalAlignment="Top">
+                        <md:Card Width="200" Height="300">
+                            <Grid RenderOptions.ClearTypeHint="Enabled" Background="White">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="100" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="100" />
+                                </Grid.RowDefinitions>
+                                <Button Grid.Row="1"
+                                        Style="{StaticResource MaterialDesignIconButton}"
+                                        ToolTip="Create Company"
+                                        Background="{DynamicResource MaterialDesignTextFieldBoxBackground}"
+                                        Foreground="{DynamicResource MaterialDesignTextFieldBoxHoverBackground}"
+                                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.CreateCompany}"
+                                        Width="100"
+                                        Height="100">
+                                    <md:PackIcon Kind="Add" Width="80" Height="80" />
+                                </Button>
+                            </Grid>
+                        </md:Card>
+                    </AdornerDecorator>
+                </CompositeCollection>
+            </ItemsControl.ItemsSource>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+        <md:PopupBox Style="{StaticResource MaterialDesignMultiFloatingActionPopupBox}"
+                     HorizontalAlignment="Right"
+                     VerticalAlignment="Bottom"
+                     Margin="32">
+            <StackPanel>
+                <Button ToolTip="Create Company"
+                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.CreateCompany}">
+                    <md:PackIcon Kind="AccountMultiplePlusOutline" Height="20" Width="20" />
+                </Button>
+                <Button ToolTip="Add Existing Company"
+                        Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}, Path=DataContext.AddCompany}">
+                    <md:PackIcon Kind="NotePlusOutline" Height="20" Width="20" />
+                </Button>
+            </StackPanel>
+        </md:PopupBox>
+    </Grid>
+</UserControl>

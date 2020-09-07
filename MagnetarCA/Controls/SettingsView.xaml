@@ -1,0 +1,35 @@
+﻿<UserControl x:Class="MagnetarCA.Controls.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             Background="{DynamicResource MaterialDesignPaper}"
+             d:DesignHeight="200"
+             d:DesignWidth="800">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <!--<TextBox materialDesign:HintAssist.Hint="Project Root"
+                 Style="{StaticResource MaterialDesignOutlinedTextFieldTextBox}"
+                 Text="{Binding Settings.StoredSettings.Root, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=ThisIsATest}"
+                 VerticalAlignment="Top"
+                 Padding="0"
+                 Height="40"
+                 TextWrapping="NoWrap" />
+        <Button Grid.Row="0"
+                Grid.Column="1"
+                Content="..."
+                Command="{Binding SelectProjectRoot, Mode=OneWay}"
+                Style="{StaticResource MaterialDesignFloatingActionButton}"
+                FontWeight="Bold"
+                Width="30"
+                Height="30"
+                Margin="10,5,10,0"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Left" />-->
+    </Grid>
+</UserControl>
