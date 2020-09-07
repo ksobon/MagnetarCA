@@ -63,4 +63,3 @@ C:\Users\ksobon\source\repos\MagnetarCA\MagnetarCA\obj\Debug\Controls\RfisView.b
 C:\Users\ksobon\source\repos\MagnetarCA\MagnetarCA\obj\Debug\Controls\RfisView.g.cs
 C:\Users\ksobon\source\repos\MagnetarCA\MagnetarCA\obj\Debug\Controls\RfiResponseDetailsView.g.cs
 C:\Users\ksobon\source\repos\MagnetarCA\MagnetarCA\obj\Debug\Controls\RfiResponseDetailsView.baml
-C:\Users\ksobon\source\repos\MagnetarCA\MagnetarCA\obj\Debug\MagnetarCA.csprojAssemblyReference.cache

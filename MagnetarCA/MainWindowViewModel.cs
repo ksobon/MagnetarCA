@@ -260,6 +260,7 @@ namespace MagnetarCA
                 return;
 
             Projects.Add(project);
+            SelectedProject = project;
         }
 
         private async void OnCreateCompany()
@@ -749,33 +750,19 @@ namespace MagnetarCA
                     return null;
                 }
 
-                foreach (var dir in dirs)
+                var project = ProcessProjectDirectory(dirs.First());
+                if (project == null)
                 {
-                    var files = Directory.GetFiles(dir);
-                    foreach (var file in files)
-                    {
-                        using (var f = File.OpenText(file))
-                        {
-                            var json = f.ReadToEnd();
-                            var project = Project.Deserialize(json);
-                            if (project == null)
-                                continue;
-
-                            project.SetRootFromFilePath(file);
-
-                            return project;
-                        }
-                    }
+                    _logger.Error($"Could not parse Project object from specified location: {rootDir}");
                 }
+
+                return project;
             }
             catch (Exception e)
             {
                 _logger.Fatal(e);
                 return null;
             }
-
-            _logger.Error($"Could not parse Project object from specified location: {rootDir}");
-            return null;
         }
 
         private List<Project> GetProjects()
@@ -787,79 +774,83 @@ namespace MagnetarCA
                     continue;
 
                 var dirs = Directory.GetDirectories(root, "ProjectInfo_Sync", SearchOption.AllDirectories);
-                foreach (var dir in dirs)
-                {
-                    var projectFiles = Directory.GetFiles(dir, "project_detail_*.json");
-                    foreach (var pFile in projectFiles)
-                    {
-                        using (var pf = File.OpenText(pFile))
-                        {
-                            var pJson = pf.ReadToEnd();
-                            var project = Project.Deserialize(pJson);
-                            if (project == null)
-                                continue;
-
-                            project.SetRootFromFilePath(pFile);
-
-                            var companyFiles = Directory.GetFiles(project.GetCompanyFolder());
-                            foreach (var cFile in companyFiles)
-                            {
-                                using (var cf = File.OpenText(cFile))
-                                {
-                                    var cJson = cf.ReadToEnd();
-                                    var company = Company.Deserialize(cJson);
-                                    if (company == null)
-                                        continue;
-
-                                    company.SetRootFromFilePath(cFile);
-
-                                    project.Companies.Add(company);
-                                }
-                            }
-                            
-                            var rfiDirs = Directory.GetDirectories(project.GetRfiFolder(), "RFI_*", SearchOption.AllDirectories);
-                            foreach (var rDir in rfiDirs)
-                            {
-                                var rfiFiles = Directory.GetFiles(rDir);
-                                foreach (var rfiFile in rfiFiles)
-                                {
-                                    using (var rf = File.OpenText(rfiFile))
-                                    {
-                                        var rJson = rf.ReadToEnd();
-                                        var rfi = Rfi.Deserialize(rJson);
-                                        if (rfi == null)
-                                            continue;
-
-                                        rfi.SetRootFromFilePath(rfiFile);
-
-                                        var responseFiles = Directory.GetFiles(rfi.GetResponsesFolder());
-                                        foreach (var responseFile in responseFiles)
-                                        {
-                                            using (var rff = File.OpenText(responseFile))
-                                            {
-                                                var rffJson = rff.ReadToEnd();
-                                                var response = Response.Deserialize(rffJson);
-                                                if (response == null)
-                                                    continue;
-
-                                                response.SetRootFromFilePath(responseFile);
-
-                                                rfi.Responses.Add(response);
-                                            }
-                                        }
-
-                                        project.Rfis.Add(rfi);
-                                    }
-                                }
-                            }
-
-                            projects.Add(project);
-                        }
-                    }
-                }
+                projects.AddRange(dirs.Select(ProcessProjectDirectory).Where(project => project != null));
             }
             
             return projects;
+        }
+
+        private static Project ProcessProjectDirectory(string dir)
+        {
+            var projectFiles = Directory.GetFiles(dir, "project_detail_*.json");
+            foreach (var pFile in projectFiles)
+            {
+                using (var pf = File.OpenText(pFile))
+                {
+                    var pJson = pf.ReadToEnd();
+                    var project = Project.Deserialize(pJson);
+                    if (project == null)
+                        continue;
+
+                    project.SetRootFromFilePath(pFile);
+
+                    var companyFiles = Directory.GetFiles(project.GetCompanyFolder());
+                    foreach (var cFile in companyFiles)
+                    {
+                        using (var cf = File.OpenText(cFile))
+                        {
+                            var cJson = cf.ReadToEnd();
+                            var company = Company.Deserialize(cJson);
+                            if (company == null)
+                                continue;
+
+                            company.SetRootFromFilePath(cFile);
+
+                            project.Companies.Add(company);
+                        }
+                    }
+
+                    var rfiDirs = Directory.GetDirectories(project.GetRfiFolder(), "RFI_*", SearchOption.AllDirectories);
+                    foreach (var rDir in rfiDirs)
+                    {
+                        var rfiFiles = Directory.GetFiles(rDir);
+                        foreach (var rfiFile in rfiFiles)
+                        {
+                            using (var rf = File.OpenText(rfiFile))
+                            {
+                                var rJson = rf.ReadToEnd();
+                                var rfi = Rfi.Deserialize(rJson);
+                                if (rfi == null)
+                                    continue;
+
+                                rfi.SetRootFromFilePath(rfiFile);
+
+                                var responseFiles = Directory.GetFiles(rfi.GetResponsesFolder());
+                                foreach (var responseFile in responseFiles)
+                                {
+                                    using (var rff = File.OpenText(responseFile))
+                                    {
+                                        var rffJson = rff.ReadToEnd();
+                                        var response = Response.Deserialize(rffJson);
+                                        if (response == null)
+                                            continue;
+
+                                        response.SetRootFromFilePath(responseFile);
+
+                                        rfi.Responses.Add(response);
+                                    }
+                                }
+
+                                project.Rfis.Add(rfi);
+                            }
+                        }
+                    }
+
+                    return project;
+                }
+            }
+
+            return null;
         }
 
         #endregion
