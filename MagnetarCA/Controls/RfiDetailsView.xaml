@@ -5,11 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:controls="clr-namespace:MagnetarCA.Controls"
+             xmlns:wpfUtils="clr-namespace:MagnetarCA.Utils.WpfUtils"
              mc:Ignorable="d" 
              Background="{DynamicResource MaterialDesignPaper}"
              d:DesignHeight="450" 
              d:DesignWidth="800">
-    <Grid>
+    <UserControl.Resources>
+        <wpfUtils:NullToBoolConverter x:Key="NullToBoolConverter"/>
+    </UserControl.Resources>
+    <Grid IsEnabled="{Binding SelectedRfi, Converter={StaticResource NullToBoolConverter}}">
         <StackPanel Grid.Row="0" Orientation="Vertical" Margin="0,0,10,0">
             <TextBox md:HintAssist.Hint="RFI Number"
                      Style="{StaticResource MaterialDesignFloatingHintTextBox}"

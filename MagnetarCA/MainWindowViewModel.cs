@@ -135,6 +135,8 @@ namespace MagnetarCA
             WindowClosing = new RelayCommand(OnWindowClosing);
         }
 
+        #region Event Handlers
+
         private void OnSwitchPage(Pages p)
         {
             if (p == Pages.Home && SelectedProject != null)
@@ -224,7 +226,7 @@ namespace MagnetarCA
             var result = await DialogHost.Show(vm, "AddRfiResponseDialogHost");
             if (result is bool boolResult && boolResult)
             {
-                
+
                 var r = vm.Response;
                 r.Init();
 
@@ -337,7 +339,7 @@ namespace MagnetarCA
             }
         }
 
-        private List<FileSystemWatcher>  Watchers { get; } = new List<FileSystemWatcher>();
+        private List<FileSystemWatcher> Watchers { get; } = new List<FileSystemWatcher>();
 
         private void OnSelectProject(Project p)
         {
@@ -399,6 +401,8 @@ namespace MagnetarCA
                 }
             }
         }
+
+        #endregion
 
         #region Watchers
 
