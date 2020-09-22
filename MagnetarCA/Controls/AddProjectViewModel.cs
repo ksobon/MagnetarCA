@@ -29,7 +29,7 @@ namespace MagnetarCA.Controls
         private async void OnCreateCompany()
         {
             var root = Path.Combine(Project.Root, $"{Project.Name} {Project.Number}\\Project\\Company_Sync");
-            var company = new Company(root);
+            var company = new Company(root, Project.Id);
             var vm = new AddCompanyViewModel(company);
             var result = await MaterialDesignThemes.Wpf.DialogHost.Show(vm, "AddCompanyDialogHost");
             if (result is bool boolResult && boolResult)

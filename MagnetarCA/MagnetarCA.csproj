@@ -139,6 +139,7 @@
     <Compile Include="Controls\SettingsView.xaml.cs">
       <DependentUpon>SettingsView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Schema\Attachment.cs" />
     <Compile Include="Schema\Company.cs" />
     <Compile Include="Schema\Interfaces\IRootBasedObject.cs" />
     <Compile Include="Schema\Extensions\Extensions.cs" />

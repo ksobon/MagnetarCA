@@ -1,14 +1,22 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.IO;
 using MagnetarCA.Schema.Extensions;
 using MagnetarCA.Schema.Interfaces;
 using MagnetarCA.Utils;
 using Newtonsoft.Json;
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace MagnetarCA.Schema
 {
     public class Company : INotifyPropertyChanged, IRootBasedObject
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public string Type { get { return GetType().Name; } }
+
+        public Guid ParentId { get; set; }
+
         private string _root;
         [JsonIgnore]
         public string Root
@@ -29,9 +37,10 @@ namespace MagnetarCA.Schema
         {
         }
 
-        public Company(string root)
+        public Company(string root, Guid parentId)
         {
             Root = root;
+            ParentId = parentId;
         }
 
         public Company Clone()
@@ -70,13 +79,12 @@ namespace MagnetarCA.Schema
 
         public override bool Equals(object obj)
         {
-            return obj is Company item &&
-                   Name.Equals(item.Name);
+            return obj is Company item && Id.Equals(item.Id);
         }
 
         public override int GetHashCode()
         {
-            return Name.GetHashCode();
+            return Id.GetHashCode();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

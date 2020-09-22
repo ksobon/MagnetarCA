@@ -25,6 +25,7 @@ namespace MagnetarCA
 
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         public SnackbarMessageQueue Messages { get; } = new SnackbarMessageQueue();
+        private List<FileSystemWatcher> Watchers { get; } = new List<FileSystemWatcher>();
 
         public RelayCommand CreateProject { get; set; }
         public RelayCommand AddProject { get; set; }
@@ -34,8 +35,8 @@ namespace MagnetarCA
         public RelayCommand AddRfiResponse { get; set; }
         public RelayCommand AddAttachment { get; set; }
         public RelayCommand AddResponseAttachment { get; set; }
-        public RelayCommand<string> DeleteAttachment { get; set; }
-        public RelayCommand<string> DeleteResponseAttachment { get; set; }
+        public RelayCommand<Attachment> DeleteAttachment { get; set; }
+        public RelayCommand<Attachment> DeleteResponseAttachment { get; set; }
         public RelayCommand<Pages> SwitchPage { get; set; }
         public RelayCommand<Pages> SwitchRfiPage { get; set; }
         public RelayCommand<Project> SelectProject { get; set; }
@@ -125,8 +126,8 @@ namespace MagnetarCA
             AddRfiResponse = new RelayCommand(OnAddRfiResponse);
             AddAttachment = new RelayCommand(OnAddAttachment);
             AddResponseAttachment = new RelayCommand(OnAddResponseAttachment);
-            DeleteAttachment = new RelayCommand<string>(OnDeleteAttachment);
-            DeleteResponseAttachment = new RelayCommand<string>(OnDeleteResponseAttachment);
+            DeleteAttachment = new RelayCommand<Attachment>(OnDeleteAttachment);
+            DeleteResponseAttachment = new RelayCommand<Attachment>(OnDeleteResponseAttachment);
             SwitchPage = new RelayCommand<Pages>(OnSwitchPage);
             SwitchRfiPage = new RelayCommand<Pages>(OnSwitchRfiPage);
             SelectProject = new RelayCommand<Project>(OnSelectProject);
@@ -154,16 +155,24 @@ namespace MagnetarCA
             SwitchRfiView = p;
         }
 
-        private void OnDeleteAttachment(string aPath)
+        private void OnDeleteAttachment(Attachment att)
         {
-            SelectedRfi.Attachments.Remove(aPath);
-            File.Delete(aPath);
+            SelectedRfi.Attachments.Remove(att);
+
+            var attDetailPath = att.GetAttachmentDetailPath();
+            var attSourcePath = att.GetAttachmentSourcePath();
+            File.Delete(attDetailPath);
+            File.Delete(attSourcePath);
         }
 
-        private void OnDeleteResponseAttachment(string aPath)
+        private void OnDeleteResponseAttachment(Attachment att)
         {
-            SelectedResponse.Attachments.Remove(aPath);
-            File.Delete(aPath);
+            SelectedResponse.Attachments.Remove(att);
+
+            var attDetailPath = att.GetAttachmentDetailPath();
+            var attSourcePath = att.GetAttachmentSourcePath();
+            File.Delete(attDetailPath);
+            File.Delete(attSourcePath);
         }
 
         private void OnAddAttachment()
@@ -171,13 +180,13 @@ namespace MagnetarCA
             if (!(Dialogs.SelectFile(true) is string[] files) || !files.Any())
                 return;
 
-            for (var i = files.Length - 1; i >= 0; i--)
+            var root = SelectedRfi.GetRfiFolder();
+            foreach (var source in files)
             {
-                var source = files[i];
-                var destination = SelectedRfi.GetRfiAttachmentPath(source);
-                File.Copy(source, destination);
+                var att = new Attachment(source, root, SelectedRfi.Id);
+                att.Init();
 
-                SelectedRfi.Attachments.Add(destination);
+                SelectedRfi.Attachments.Add(att);
             }
         }
 
@@ -186,20 +195,20 @@ namespace MagnetarCA
             if (!(Dialogs.SelectFile(true) is string[] files) || !files.Any())
                 return;
 
-            for (var i = files.Length - 1; i >= 0; i--)
+            var root = SelectedRfi.GetRfiFolder();
+            foreach (var source in files)
             {
-                var source = files[i];
-                var destination = SelectedResponse.GetRfiResponseAttachmentPath(source);
-                File.Copy(source, destination);
+                var att = new Attachment(source, root, SelectedResponse.Id);
+                att.Init();
 
-                SelectedResponse.Attachments.Add(destination);
+                SelectedResponse.Attachments.Add(att);
             }
         }
 
         private async void OnAddRfi()
         {
             var root = Path.Combine(SelectedProject.Root, $"{SelectedProject.Name} {SelectedProject.Number}\\CA\\RFI\\RFI_Sync");
-            var rfi = new Rfi(root);
+            var rfi = new Rfi(root, SelectedProject.Id);
             var vm = new AddRfiViewModel(rfi);
             var result = await DialogHost.Show(vm, "AddRfiDialogHost");
             if (result is bool boolResult && boolResult)
@@ -213,6 +222,12 @@ namespace MagnetarCA
                         SelectedProject.Companies.Add(c);
                 }
 
+                foreach (var att in r.Attachments)
+                {
+                    att.Root = rfi.GetRfiFolder();
+                    att.Init();
+                }
+
                 SelectedProject.Rfis.Add(r);
             }
         }
@@ -221,14 +236,19 @@ namespace MagnetarCA
         {
             var root = Path.Combine(SelectedProject.Root, $"{SelectedProject.Name} {SelectedProject.Number}\\CA\\RFI\\RFI_Sync\\RFI_{SelectedRfi.Number}\\Responses");
             var number = SelectedRfi.Responses.Count + 1;
-            var response = new Response(root, number);
+            var response = new Response(root, number, SelectedRfi.Id);
             var vm = new AddRfiResponseViewModel(response);
             var result = await DialogHost.Show(vm, "AddRfiResponseDialogHost");
             if (result is bool boolResult && boolResult)
             {
-
                 var r = vm.Response;
                 r.Init();
+
+                foreach (var att in r.Attachments)
+                {
+                    att.Root = SelectedRfi.GetRfiFolder();
+                    att.Init();
+                }
 
                 SelectedRfi.Responses.Add(r);
             }
@@ -268,7 +288,7 @@ namespace MagnetarCA
         private async void OnCreateCompany()
         {
             var root = Path.Combine(SelectedProject.Root, $"{SelectedProject.Name} {SelectedProject.Number}\\Project\\Company_Sync");
-            var company = new Company(root);
+            var company = new Company(root, SelectedProject.Id);
             var vm = new AddCompanyViewModel(company);
             var result = await DialogHost.Show(vm, "AddCompanyDialogHost");
             if (result is bool boolResult && boolResult)
@@ -300,6 +320,7 @@ namespace MagnetarCA
                 }
 
                 company.SetRootFromFilePath(companyPath);
+                company.ParentId = SelectedProject.Id;
 
                 SelectedProject.Companies.Add(company);
             }
@@ -338,8 +359,6 @@ namespace MagnetarCA
                 p.Contractor = undoCopy.Contractor;
             }
         }
-
-        private List<FileSystemWatcher> Watchers { get; } = new List<FileSystemWatcher>();
 
         private void OnSelectProject(Project p)
         {
@@ -498,20 +517,16 @@ namespace MagnetarCA
 
                 response.SetRootFromFilePath(e.FullPath);
 
-                var oneUp = Path.GetFullPath(Path.Combine(response.Root, @"..\"));
-                var dirName = Path.GetFileName(Path.GetDirectoryName(oneUp));
-                var rfiNumber = dirName?.Split('_').LastOrDefault();
-                if (rfiNumber == null)
-                    return;
-
-                var rfi = SelectedProject.Rfis.FirstOrDefault(x => x.Number == rfiNumber);
+                var rfi = SelectedProject.Rfis.FirstOrDefault(x => x.Id == response.ParentId);
                 if (rfi == null)
                     return;
 
                 if (!rfi.Responses.Contains(response))
+                {
+                    response.ParentId = rfi.Id;
                     System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() => rfi.Responses.Add(response)));
-
-                Messages.Enqueue("Project updated externally. Added new Response.");
+                    Messages.Enqueue("Project updated externally. Added new Response.");
+                }
             }
         }
 
@@ -531,14 +546,8 @@ namespace MagnetarCA
 
                 response.SetRootFromFilePath(e.FullPath);
 
-                var oneUp = Path.GetFullPath(Path.Combine(response.Root, @"..\"));
-                var dirName = Path.GetFileName(Path.GetDirectoryName(oneUp));
-                var rfiNumber = dirName?.Split('_').LastOrDefault();
-                if (rfiNumber == null)
-                    return;
-
-                var rfi = SelectedProject.Rfis.FirstOrDefault(x => x.Number == rfiNumber);
-                var found = rfi?.Responses.FirstOrDefault(x => x.Equals(response));
+                var rfi = SelectedProject.Rfis.FirstOrDefault(x => x.Id == response.ParentId);
+                var found = rfi?.Responses.FirstOrDefault(x => x.Id == response.Id);
                 if (found == null)
                     return;
 
@@ -546,7 +555,7 @@ namespace MagnetarCA
                     found.ProposedAction == response.ProposedAction &&
                     found.CreationDate == response.CreationDate &&
                     found.Details == response.Details &&
-                    found.Attachments == response.Attachments)
+                    response.Attachments.All(att => found.Attachments.Contains(att)))
                     return; // no changes
 
                 // (Konrad) Update only properties that users can actually modify.
@@ -586,8 +595,8 @@ namespace MagnetarCA
                     found.ContractorRfiNumber == rfi.ContractorRfiNumber &&
                     found.ReceivedDate == rfi.ReceivedDate &&
                     found.DueDate == rfi.DueDate &&
-                    found.Details == rfi.Details &&
-                    found.Attachments == rfi.Attachments)
+                    found.Details == rfi.Details && 
+                    rfi.Attachments.All(att => found.Attachments.Contains(att)))
                     return; // no changes
 
                 // (Konrad) Update only properties that users can actually modify.
@@ -621,9 +630,12 @@ namespace MagnetarCA
                 rfi.SetRootFromFilePath(e.FullPath);
 
                 if (!SelectedProject.Rfis.Contains(rfi))
+                {
+                    rfi.ParentId = SelectedProject.Id;
                     System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() => SelectedProject.Rfis.Add(rfi)));
 
-                Messages.Enqueue("Project updated externally. Added new RFI.");
+                    Messages.Enqueue("Project updated externally. Added new RFI.");
+                }
             }
         }
 
@@ -658,7 +670,10 @@ namespace MagnetarCA
                 company.SetRootFromFilePath(e.FullPath);
 
                 if (!SelectedProject.Companies.Contains(company))
+                {
+                    company.ParentId = SelectedProject.Id;
                     System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() => SelectedProject.Companies.Add(company)));
+                }
 
                 Messages.Enqueue("Project updated externally. Added new Company.");
             }
@@ -841,9 +856,15 @@ namespace MagnetarCA
 
                                         response.SetRootFromFilePath(responseFile);
 
+                                        foreach (var att in response.Attachments)
+                                            att.Root = rfi.GetRfiFolder();
+
                                         rfi.Responses.Add(response);
                                     }
                                 }
+
+                                foreach (var att in rfi.Attachments)
+                                    att.Root = rfi.GetRfiFolder();
 
                                 project.Rfis.Add(rfi);
                             }

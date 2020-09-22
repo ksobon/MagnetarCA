@@ -8,6 +8,7 @@ using MagnetarCA.Schema.Interfaces;
 using MagnetarCA.Utils;
 using Newtonsoft.Json;
 using NLog;
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace MagnetarCA.Schema
 {
@@ -20,6 +21,12 @@ namespace MagnetarCA.Schema
             "Attachments",
             "Responses"
         };
+
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public string Type { get { return GetType().Name; } }
+
+        public Guid ParentId { get; set; }
 
         private string _root;
         [JsonIgnore]
@@ -78,8 +85,8 @@ namespace MagnetarCA.Schema
             set { _details = value; RaisePropertyChanged(nameof(Details)); }
         }
 
-        private ObservableCollection<string> _attachments = new ObservableCollection<string>();
-        public ObservableCollection<string> Attachments
+        private ObservableCollection<Attachment> _attachments = new ObservableCollection<Attachment>();
+        public ObservableCollection<Attachment> Attachments
         {
             get { return _attachments; }
             set { _attachments = value; RaisePropertyChanged(nameof(Attachments)); }
@@ -98,9 +105,10 @@ namespace MagnetarCA.Schema
         {
         }
 
-        public Rfi(string root)
+        public Rfi(string root, Guid parentId)
         {
             Root = root;
+            ParentId = parentId;
         }
 
         public void Init()
@@ -117,15 +125,6 @@ namespace MagnetarCA.Schema
                 {
                     _logger.Error($"Could not create directory: {folderPath}");
                 }
-            }
-
-            for (var i = Attachments.Count - 1; i >= 0; i--)
-            {
-                var source = Attachments[i];
-                var destination = this.GetRfiAttachmentPath(source);
-                File.Copy(source, destination, true);
-
-                Attachments[i] = destination;
             }
 
             // (Konrad) Write RFI Info to file.
@@ -149,12 +148,12 @@ namespace MagnetarCA.Schema
 
         public override bool Equals(object obj)
         {
-            return obj is Rfi item && Number.Equals(item.Number);
+            return obj is Rfi item && Id.Equals(item.Id);
         }
 
         public override int GetHashCode()
         {
-            return Number.GetHashCode();
+            return Id.GetHashCode();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

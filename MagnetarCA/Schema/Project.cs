@@ -8,6 +8,7 @@ using MagnetarCA.Schema.Interfaces;
 using MagnetarCA.Utils;
 using Newtonsoft.Json;
 using NLog;
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace MagnetarCA.Schema
 {
@@ -33,6 +34,8 @@ namespace MagnetarCA.Schema
         };
 
         public Guid Id { get; set; } = Guid.NewGuid();
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public string Type { get { return GetType().Name; } }
 
         private string _root;
         [JsonIgnore]
@@ -146,14 +149,12 @@ namespace MagnetarCA.Schema
 
         public override bool Equals(object obj)
         {
-            return obj is Project item && 
-                   Name.Equals(item.Name) && 
-                   Number.Equals(item.Number);
+            return obj is Project item && Id.Equals(item.Id);
         }
 
         public override int GetHashCode()
         {
-            return Name.GetHashCode();
+            return Id.GetHashCode();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

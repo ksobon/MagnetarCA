@@ -8,11 +8,18 @@ using MagnetarCA.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 // ReSharper disable UnusedMember.Global
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace MagnetarCA.Schema
 {
     public class Response : INotifyPropertyChanged, IRootBasedObject
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public string Type { get { return GetType().Name; } }
+
+        public Guid ParentId { get; set; }
+
         private string _root;
         [JsonIgnore]
         public string Root
@@ -50,8 +57,8 @@ namespace MagnetarCA.Schema
             set { _details = value; RaisePropertyChanged(nameof(Details)); }
         }
 
-        private ObservableCollection<string> _attachments = new ObservableCollection<string>();
-        public ObservableCollection<string> Attachments
+        private ObservableCollection<Attachment> _attachments = new ObservableCollection<Attachment>();
+        public ObservableCollection<Attachment> Attachments
         {
             get { return _attachments; }
             set { _attachments = value; RaisePropertyChanged(nameof(Attachments)); }
@@ -62,10 +69,11 @@ namespace MagnetarCA.Schema
         {
         }
 
-        public Response(string root, int number)
+        public Response(string root, int number, Guid parentId)
         {
             Root = root;
             Number = number;
+            ParentId = parentId;
         }
 
         public void Init()
@@ -76,15 +84,6 @@ namespace MagnetarCA.Schema
             // (Konrad) Check how many responses exist already, and add another one.
             var existingResponses = Directory.GetFiles(Root, "rfi_response_*");
             Number = existingResponses.Length + 1;
-
-            for (var i = Attachments.Count - 1; i >= 0; i--)
-            {
-                var source = Attachments[i];
-                var destination = this.GetRfiResponseAttachmentPath(source);
-                File.Copy(source, destination, true);
-
-                Attachments[i] = destination;
-            }
 
             // (Konrad) Write RFI Info to file.
             File.WriteAllText(this.GetRfiResponseDetailPath(), Serialize());
@@ -107,12 +106,12 @@ namespace MagnetarCA.Schema
 
         public override bool Equals(object obj)
         {
-            return obj is Response item && Number.Equals(item.Number);
+            return obj is Response item && Id.Equals(item.Id);
         }
 
         public override int GetHashCode()
         {
-            return Number.GetHashCode();
+            return Id.GetHashCode();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

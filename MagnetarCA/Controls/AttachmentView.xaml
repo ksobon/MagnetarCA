@@ -19,7 +19,7 @@
                    TextTrimming="CharacterEllipsis" 
                    Margin="0,0,10,0" 
                    TextWrapping="NoWrap" 
-                   Text="{Binding }" />
+                   Text="{Binding Name}" />
         <Button Grid.Column="1"
                 Command="{Binding ButtonCommand, ElementName=Control}"
                 CommandParameter="{Binding ButtonParameter, ElementName=Control}"
