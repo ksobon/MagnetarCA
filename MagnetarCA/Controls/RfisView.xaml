@@ -16,7 +16,7 @@
                     <GridView>
                         <GridViewColumn DisplayMemberBinding="{Binding Number}" Header="Number" Width="85" />
                         <GridViewColumn DisplayMemberBinding="{Binding DueDate, StringFormat=dd/MM/yyyy}" Header="Due Date" Width="120" />
-                        <GridViewColumn DisplayMemberBinding="{Binding Attachments.Count}" Header="Attachments" Width="120" />
+                        <GridViewColumn DisplayMemberBinding="{Binding Attachments.Count, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Header="Attachments" Width="120" />
                         <GridViewColumn DisplayMemberBinding="{Binding Responses.Count}" Header="Responses" Width="120" />
                         <GridViewColumn DisplayMemberBinding="{Binding Subject}" Header="Subject" Width="Auto" />
                     </GridView>

@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using MagnetarCA.Schema;
@@ -10,7 +9,7 @@ namespace MagnetarCA.Controls
     public class AddRfiResponseViewModel : ViewModelBase
     {
         public RelayCommand AddAttachment { get; set; }
-        public RelayCommand<string> DeleteAttachment { get; set; }
+        public RelayCommand<Attachment> DeleteAttachment { get; set; }
 
         private Response _response;
         public Response Response
@@ -24,12 +23,12 @@ namespace MagnetarCA.Controls
             Response = r;
 
             AddAttachment = new RelayCommand(OnAddAttachment);
-            DeleteAttachment = new RelayCommand<string>(OnDeleteAttachment);
+            DeleteAttachment = new RelayCommand<Attachment>(OnDeleteAttachment);
         }
 
-        private void OnDeleteAttachment(string aPath)
+        private void OnDeleteAttachment(Attachment att)
         {
-            Response.Attachments.Remove(aPath);
+            Response.Attachments.Remove(att);
         }
 
         private void OnAddAttachment()
@@ -39,7 +38,8 @@ namespace MagnetarCA.Controls
 
             foreach (var source in files)
             {
-                Response.Attachments.Add(source);
+                var att = new Attachment(source, null, Response.Id, Response.Number);
+                Response.Attachments.Add(att);
             }
         }
     }

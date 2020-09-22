@@ -11,7 +11,7 @@ namespace MagnetarCA.Controls
     public class AddRfiViewModel : ViewModelBase
     {
         public RelayCommand AddAttachment { get; set; }
-        public RelayCommand<string> DeleteAttachment { get; set; }
+        public RelayCommand<Attachment> DeleteAttachment { get; set; }
         public RelayCommand CreateCompany { get; set; }
 
         private Rfi _rfi;
@@ -34,14 +34,14 @@ namespace MagnetarCA.Controls
             Companies = GetCompanies();
 
             AddAttachment = new RelayCommand(OnAddAttachment);
-            DeleteAttachment = new RelayCommand<string>(OnDeleteAttachment);
+            DeleteAttachment = new RelayCommand<Attachment>(OnDeleteAttachment);
             CreateCompany = new RelayCommand(OnCreateCompany);
         }
 
-        private void OnDeleteAttachment(string aPath)
+        private void OnDeleteAttachment(Attachment att)
         {
-            Rfi.Attachments.Remove(aPath);
-            File.Delete(aPath);
+            Rfi.Attachments.Remove(att);
+            File.Delete(att.Root);
         }
 
         private void OnAddAttachment()
@@ -51,7 +51,8 @@ namespace MagnetarCA.Controls
 
             foreach (var source in files)
             {
-                Rfi.Attachments.Add(source);
+                var att = new Attachment(source, null, Rfi.Id);
+                Rfi.Attachments.Add(att);
             }
         }
 
@@ -66,6 +67,7 @@ namespace MagnetarCA.Controls
                 var companyDir = Path.Combine(root, "..\\..\\..\\Project\\Company_Sync");
                 var c = vm.Company;
                 c.Root = companyDir;
+                c.ParentId = Rfi.ParentId;
                 c.Init();
 
                 Companies.Add(c);

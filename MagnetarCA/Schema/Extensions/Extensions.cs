@@ -44,28 +44,24 @@ namespace MagnetarCA.Schema.Extensions
             return Path.Combine(r.GetRfiFolder(), $"rfi_detail_{r.Number}.json");
         }
 
+        public static string GetAttachmentDetailPath(this Attachment a)
+        {
+            return Path.Combine(a.Root, $"Attachments\\attachment_detail_{Path.GetFileNameWithoutExtension(a.Name)}.json");
+        }
+
+        public static string GetAttachmentSourcePath(this Attachment a)
+        {
+            return Path.Combine(a.Root, $"Attachments\\{a.Name}");
+        }
+
         public static string GetRfiResponseDetailPath(this Response r)
         {
             return Path.Combine(r.Root, $"rfi_response_{r.Number:D3}.json");
         }
 
-        public static string GetRfiAttachmentPath(this Rfi r, string aPath)
+        public static string GetAttachmentPath(this Attachment att)
         {
-            return Path.Combine(r.GetRfiFolder(), $"Attachments\\{Path.GetFileName(aPath)}");
+            return Path.Combine(att.Root, $"Attachments\\{att.Name}");
         }
-
-        public static string GetRfiResponseAttachmentPath(this Response r, string aPath)
-        {
-            return Path.Combine(r.Root, $"..\\Attachments\\{r.GetRfiResponseAttachmentName(aPath)}");
-        }
-
-        #region Utilities
-
-        private static string GetRfiResponseAttachmentName(this Response r, string aPath)
-        {
-            return $"{r.Number:D3}_{Path.GetFileName(aPath)}";
-        }
-
-        #endregion
     }
 }
